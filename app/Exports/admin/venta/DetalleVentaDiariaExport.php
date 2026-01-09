@@ -15,14 +15,13 @@ class DetalleVentaDiariaExport implements FromView, ShouldAutoSize,WithStyles
     private $detalles_ventas_generadas;
     public function __construct($ventas)
     {
-        //log::alert(count(collect($reubicaciones)));
         $this->detalles_ventas_generadas = collect($ventas)->map(function ($venta) {
             return is_array($venta) ? (object) $venta : $venta;
         });
     }
     public function view(): View
     {
-        return view('admin.exports.ventas.DetalleVentaDiariaExport', [
+        return view('exports.ventas.DetalleVentaDiariaExport', [
             'results' => $this->detalles_ventas_generadas
         ]);
     }

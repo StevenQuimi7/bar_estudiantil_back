@@ -69,7 +69,8 @@ class NivelService
     public function update($id,$request){
         $response = new Response();
         try{
-            $nivel = Nivel::where("id",$id)->update([
+            $nivel = Nivel::findOrFail($id);
+            $nivel->update([
                 "nombre"              => $request->nombre,
                 "id_usuario_creacion" => getUsuarioAutenticado()->id
             ]);

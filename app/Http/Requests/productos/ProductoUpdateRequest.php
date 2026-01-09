@@ -21,9 +21,9 @@ class ProductoUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'productoEdit.id_categoria'=> 'required',
-            'productoEdit.precio'      => ['required','numeric','min:0.01','regex:/^\d+(\.\d{1,2})?$/'],
-            'productoEdit.codigo'      => [
+            'id_categoria'=> 'required',
+            'precio'      => ['required','numeric','min:0.01','regex:/^\d+(\.\d{1,2})?$/'],
+            'codigo'      => [
                 'required',
                 'min:1',
                 Rule::unique('productos', 'codigo')
@@ -32,12 +32,12 @@ class ProductoUpdateRequest extends FormRequest
                     return $query->where('activo', 1);
                 }),
             ],
-            'productoEdit.nombre'      => [
+            'nombre'      => [
                 'required',
                 'min:2',
-                Rule::unique('productos', 'nombre')->where(function ($query) {
-                    return $query->where('activo', 1);
-                }),
+                Rule::unique('productos', 'nombre')
+                    ->ignore($this->route('id'))
+                    ->where(fn ($query) => $query->where('activo', 1)),
             ],
         ];
     }

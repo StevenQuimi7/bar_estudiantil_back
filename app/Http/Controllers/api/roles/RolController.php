@@ -15,10 +15,6 @@ class RolController extends Controller
 
     protected $_rolService;
     public function __construct(){
-        // $this->middleware('can:roles.index')->only('index');
-        // $this->middleware('can:roles.store')->only('store');
-        // $this->middleware('can:roles.update')->only('update');
-        // $this->middleware('can:roles.destroy')->only('destroy');
         $this->_rolService = new RolService();
     }
 
@@ -45,7 +41,6 @@ class RolController extends Controller
 
     public function store(RolStoreRequest $request)
     {
-        $validator = $request->validated();
         try{
             DB::beginTransaction();
             $rol = $this->_rolService->store($request);
@@ -60,7 +55,6 @@ class RolController extends Controller
 
     public function update(RolUpdateRequest $request, string $id)
     {
-        $validator = $request->validated();
         try{
             DB::beginTransaction();
             $rol = $this->_rolService->update($id, $request);

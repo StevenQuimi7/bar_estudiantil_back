@@ -12,12 +12,8 @@ use Illuminate\Support\Facades\DB;
 
 class CursoController extends Controller
 {
-     protected $_cursoService;
+    protected $_cursoService;
     public function __construct(){
-        // $this->middleware('can:cursos.index')->only('index');
-        // $this->middleware('can:cursos.store')->only('store');
-        // $this->middleware('can:cursos.update')->only('update');
-        // $this->middleware('can:cursos.destroy')->only('destroy');
         $this->_cursoService = new CursoService();
     }
 
@@ -31,10 +27,20 @@ class CursoController extends Controller
             return response()->json(['ok' => false, 'msj' => $e->getMessage(), 500]);
         }
     }
+    
+    public function comboCursos(Request $request)
+    {
+        try{
+            $combo_cursos = $this->_cursoService->comboCursos($request);
+            if(!$combo_cursos->getOk()) throw new Exception($combo_cursos->getMsjError(), $combo_cursos->getCode());
+            return response()->json(['ok' => true, 'data' => $combo_cursos->getData()],200);
+        }catch(Exception $e){
+            return response()->json(['ok' => false, 'msj' => $e->getMessage(), 500]);
+        }
+    }
 
     public function store(CursoStoreRequest $request)
     {
-        $validator = $request->validated();
         try{
             DB::beginTransaction();
             if($this->_cursoService->validacionCursoExistente($request)) throw new Exception("El curso ya existe");
@@ -50,7 +56,6 @@ class CursoController extends Controller
     
     public function update(CursoUpdateRequest $request, string $id)
     {
-        $validator = $request->validated();
         try{
             DB::beginTransaction();
             if($this->_cursoService->validacionCursoExistente($request)) throw new Exception("El curso ya existe");

@@ -15,11 +15,7 @@ class CabeceraVentaGeneradaExport implements FromView, ShouldAutoSize,WithStyles
    private $ventas_generadas;
     public function __construct($ventas)
     {
-        //log::alert(count(collect($reubicaciones)));
         $this->ventas_generadas = collect($ventas);
-        // log::alert("parametro desde CabeceraVentaGeneradaExport");
-        // log::alert(collect($ventas));
-        // log::alert("----");
 
     }
     public function view(): View

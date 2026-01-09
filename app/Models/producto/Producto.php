@@ -4,6 +4,7 @@ namespace App\Models\producto;
 
 use App\Models\Auditoria;
 use App\Models\categoria\Categoria;
+use App\Models\Image;
 use App\Models\ModeloBase;
 use App\Models\User;
 use App\Models\venta\DetalleVenta;
@@ -50,5 +51,8 @@ class Producto extends ModeloBase
     }
     public function auditoria(){
         return $this->morphMany(Auditoria::class, 'auditable');
+    }
+    public function image(){
+        return $this->morphOne(Image::class, 'imageable');
     }
 }

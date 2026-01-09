@@ -18,7 +18,7 @@ class TipoClienteSeeder extends Seeder
             ["nombre"=>"ESTUDIANTE", "id_usuario_creacion"=>1],
             ["nombre"=>"DOCENTE", "id_usuario_creacion"=>1],
             ["nombre"=>"SISTEMAS", "id_usuario_creacion"=>1],
-            ["nombre"=>"OTRO", "id_usuario_creacion"=>1],
+            ["nombre"=>"OTROS", "id_usuario_creacion"=>1],
         ];
         TipoCliente::insert($tipo_clientes);
     }

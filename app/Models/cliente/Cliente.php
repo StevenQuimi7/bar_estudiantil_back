@@ -5,6 +5,7 @@ namespace App\Models\cliente;
 use App\Models\Auditoria;
 use App\Models\cliente\credito\Credito;
 use App\Models\curso\CursoEstudiante;
+use App\Models\estudiante\Estudiante;
 use App\Models\ModeloBase;
 use App\Models\User;
 use App\Models\venta\consolidacion\VentaConsolidada;
@@ -71,6 +72,9 @@ class Cliente extends ModeloBase
     public function user(){
         return $this->belongsTo(User::class,'id_usuario_creacion','id');
     }
+     public function estudiante(){
+        return $this->hasOne(Estudiante::class,'id_cliente','id');
+    }
     public function auditoria(){
         return $this->morphMany(Auditoria::class, 'auditable');
     }
@@ -85,9 +89,6 @@ class Cliente extends ModeloBase
     }
     public function ventas_consolidadas(){
         return $this->hasMany(VentaConsolidada::class,'id_cliente','id');
-    }
-    public function estudiante_curso(){
-        return $this->hasMany(CursoEstudiante::class,'id_cliente','id');
     }
     
 }

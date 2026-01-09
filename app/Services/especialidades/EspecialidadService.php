@@ -69,7 +69,8 @@ class EspecialidadService
     public function update($id,$request){
         $response = new Response();
         try{
-            $especialidad = Especialidad::where("id",$id)->update([
+            $especialidad = Especialidad::findOrFail($id);
+            $especialidad->update([
                 "nombre"              => $request->nombre,
                 "id_usuario_creacion" => getUsuarioAutenticado()->id
             ]);

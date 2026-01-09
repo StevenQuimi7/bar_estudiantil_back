@@ -26,10 +26,15 @@ class EspecialidadObserver
     public function updated(Especialidad $especialidad): void
     {
         //
+        if ($especialidad->wasChanged('activo') && $especialidad->activo == 0) {
+            $accion = 'ELIMINAR';
+        } else {
+            $accion = 'ACTUALIZAR';
+        }
         $especialidad->auditoria()->create([
-            "accion" => "ACTUALIZAR",
-            "data_anterior"=>json_encode($especialidad->getPrevious()),
-            "data_actual"=>json_encode($especialidad),
+            "accion" => $accion,
+            "data_anterior" => json_encode($especialidad->getOriginal()),
+            "data_actual"   => json_encode($especialidad->getAttributes()),
             "id_usuario_creacion" => $especialidad->id_usuario_creacion
         ]);
     }

@@ -3,7 +3,9 @@
 namespace App\Models\estudiante;
 
 use App\Models\Auditoria;
+use App\Models\cliente\Cliente;
 use App\Models\curso\Curso;
+use App\Models\curso\CursoEstudiante;
 use App\Models\estudiante\bono\BonoEstudiante;
 use App\Models\ModeloBase;
 use App\Models\User;
@@ -15,13 +17,8 @@ class Estudiante extends ModeloBase
     //
     protected $table = 'estudiantes';
     protected $fillable = [
-        "id_curso",
-        "primer_nombre",
-        "segundo_nombre",
-        "primer_apellido",
-        "segundo_apellido",
-        "numero_identificacion",
-        "edad",
+        "id_curso",//curso actual
+        "id_cliente",
         "id_usuario_creacion",
         "activo"
     ];
@@ -29,7 +26,7 @@ class Estudiante extends ModeloBase
         "activo"=>"boolean"
     ];
 
-    protected $appends = ['nombres', 'apellidos'];
+    /*protected $appends = ['nombres', 'apellidos'];
     protected function primerNombre(): Attribute
     {
         return Attribute::make(
@@ -64,6 +61,11 @@ class Estudiante extends ModeloBase
     {
         return "{$this->primer_apellido} {$this->segundo_apellido}";
     }
+    */
+    
+    public function cliente(){
+        return $this->belongsTo(Cliente::class, 'id_cliente','id');
+    }
 
     public function curso(){
         return $this->belongsTo(Curso::class, 'id_curso','id');
@@ -76,6 +78,10 @@ class Estudiante extends ModeloBase
     }
     public function bono(){
         return $this->hasOne(BonoEstudiante::class,'id_estudiante','id');
+    }
+    //cursos del estudiante por cada periodo 
+    public function estudiante_curso(){
+        return $this->hasMany(CursoEstudiante::class,'id_estudiante','id');
     }
     
 }

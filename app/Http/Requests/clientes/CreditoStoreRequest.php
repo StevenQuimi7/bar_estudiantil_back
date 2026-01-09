@@ -35,7 +35,7 @@ class CreditoStoreRequest extends FormRequest
                 ),
             ],
             'tipo' => 'required',
-            'credito_cliente' => 'nullable|array',
+            'credito_cliente' => 'nullable',
         ];
     }
     

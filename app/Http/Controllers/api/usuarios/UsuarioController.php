@@ -15,11 +15,6 @@ class UsuarioController extends Controller
 
     protected $_usuarioService;
     public function __construct(){
-        // $this->middleware('can:usuarios.index')->only('index');
-        // $this->middleware('can:usuarios.store')->only('store');
-        // $this->middleware('can:usuarios.update')->only('update');
-        // $this->middleware('can:usuarios.destroy')->only('destroy');
-        // $this->middleware('can:usuarios.activarUsuario')->only('activarUsuario');
         $this->_usuarioService = new UsuarioService();
     }
 
@@ -36,7 +31,6 @@ class UsuarioController extends Controller
 
     public function store(AuthRequest $request)
     {
-        $validator = $request->validated();
         try{
             DB::beginTransaction();
             $usuario = $this->_usuarioService->store($request);
@@ -51,7 +45,6 @@ class UsuarioController extends Controller
 
     public function update(UsuarioUpdateRequest $request, string $id)
     {
-        $validator = $request->validated();
         try{
             DB::beginTransaction();
             $usuario = $this->_usuarioService->update($id, $request);
@@ -91,4 +84,16 @@ class UsuarioController extends Controller
             return response()->json(['ok' => false, 'msj' => $e->getMessage(), 500]);
         }
     }
+
+    public function perfilUsuario(Request $request)
+    {
+        try{
+            $usuarios = $this->_usuarioService->perfilUsuario($request);
+            if(!$usuarios->getOk()) throw new Exception($usuarios->getMsjError(), $usuarios->getCode());
+            return response()->json(['ok' => true, 'data' => $usuarios->getData()],200);
+        }catch(Exception $e){
+            return response()->json(['ok' => false, 'msj' => $e->getMessage(), 500]);
+        }
+    }
+
 }

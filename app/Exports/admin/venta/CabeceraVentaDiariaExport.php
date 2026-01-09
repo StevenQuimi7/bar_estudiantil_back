@@ -15,16 +15,12 @@ class CabeceraVentaDiariaExport implements FromView, ShouldAutoSize,WithStyles
    private $ventas_diarias;
     public function __construct($ventas)
     {
-        //log::alert(count(collect($reubicaciones)));
         $this->ventas_diarias = collect($ventas);
-        // log::alert("parametro desde CabeceraVentaGeneradaExport");
-        // log::alert(collect($ventas));
-        // log::alert("----");
 
     }
     public function view(): View
     {
-        return view('admin.exports.ventas.VentaDiariaExport', [
+        return view('exports.ventas.VentaDiariaExport', [
             'results' => $this->ventas_diarias
         ]);
     }

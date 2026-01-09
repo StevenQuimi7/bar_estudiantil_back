@@ -26,10 +26,16 @@ class NivelObserver
     public function updated(Nivel $nivel): void
     {
         //
+        if ($nivel->wasChanged('activo') && $nivel->activo == 0) {
+            $accion = 'ELIMINAR';
+        } else {
+            $accion = 'ACTUALIZAR';
+        }
+
         $nivel->auditoria()->create([
-            "accion" => "ACTUALIZAR",
-            "data_anterior"=>json_encode($nivel->getPrevious()),
-            "data_actual"=>json_encode($nivel),
+            "accion" => $accion,
+            "data_anterior" => json_encode($nivel->getOriginal()),
+            "data_actual"   => json_encode($nivel->getAttributes()),
             "id_usuario_creacion" => $nivel->id_usuario_creacion
         ]);
     }

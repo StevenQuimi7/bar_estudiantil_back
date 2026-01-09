@@ -24,10 +24,16 @@ class CursoObserver
     public function updated(Curso $curso): void
     {
         //
+        if ($curso->wasChanged('activo') && $curso->activo == 0) {
+            $accion = 'ELIMINAR';
+        } else {
+            $accion = 'ACTUALIZAR';
+        }
+
         $curso->auditoria()->create([
-            "accion" => "ACTUALIZAR",
-            "data_anterior"=>json_encode($curso->getPrevious()),
-            "data_actual"=>json_encode($curso),
+            "accion" => $accion,
+            "data_anterior" => json_encode($curso->getOriginal()),
+            "data_actual"   => json_encode($curso->getAttributes()),
             "id_usuario_creacion" => $curso->id_usuario_creacion
         ]);
     }

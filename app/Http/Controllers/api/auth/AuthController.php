@@ -21,7 +21,6 @@ class AuthController extends Controller
     //
     public function register(AuthRequest $request)
     {
-        $validated = $request->validated();
         try{
     
             $user = $this->authService->register($request);
@@ -37,8 +36,6 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request)
     {
-
-        $validated = $request->validated();
         try{
     
             $user = $this->authService->login($request);

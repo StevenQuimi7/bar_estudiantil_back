@@ -31,6 +31,7 @@ class UsuarioUpdateRequest extends FormRequest
                     ->ignore($this->route('id'))
                     ->where(fn ($query) => $query->where('activo', 1)),
             ],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ];
     }
 
@@ -41,7 +42,9 @@ class UsuarioUpdateRequest extends FormRequest
             "integer"         => "El campo :attribute debe ser entero.",
             "unique"          => "El campo :attribute debe ser unico.",
             "email"           => "El campo :attribute debe ser de tipo email.",
-            "string"          => "El campo :attribute debe ser de tipo string."
+            "string"          => "El campo :attribute debe ser de tipo string.",
+            "min"             => "El campo :attribute debe tener mínimo :min caracteres.",
+            "confirmed"       => "El campo :attribute no coincide.",
         ];
     }
     protected function failedValidation(Validator $validator)

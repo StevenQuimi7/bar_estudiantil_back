@@ -15,7 +15,6 @@ class DetallesVentaGeneradaExport implements FromView, ShouldAutoSize,WithStyles
     private $detalles_ventas_generadas;
     public function __construct($ventas)
     {
-        //log::alert(count(collect($reubicaciones)));
         $this->detalles_ventas_generadas = collect($ventas)->map(function ($venta) {
             return is_array($venta) ? (object) $venta : $venta;
         });

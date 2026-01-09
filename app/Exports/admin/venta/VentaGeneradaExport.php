@@ -14,12 +14,8 @@ class VentaGeneradaExport implements WithMultipleSheets
     private $detalles;
     public function __construct($ventas)
     {
-        //log::alert(count(collect($reubicaciones)));
         $this->ventas_generadas = collect($ventas);
         $this->detalles = $this->setDetalles($ventas);
-        // log::alert("parametro desde VentaGeneradaExport");
-        // log::alert(collect($ventas));
-        // log::alert("----");
 
     }
 

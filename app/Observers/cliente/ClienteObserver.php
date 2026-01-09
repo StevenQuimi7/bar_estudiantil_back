@@ -24,10 +24,16 @@ class ClienteObserver
     public function updated(Cliente $cliente): void
     {
         //
+        if ($cliente->wasChanged('activo') && $cliente->activo == 0) {
+            $accion = 'ELIMINAR';
+        } else {
+            $accion = 'ACTUALIZAR';
+        }
+
         $cliente->auditoria()->create([
-            "accion" => "ACTUALIZAR",
-            "data_anterior"=>json_encode($cliente->getPrevious()),
-            "data_actual"=>json_encode($cliente),
+            "accion" => $accion,
+            "data_anterior" => json_encode($cliente->getOriginal()),
+            "data_actual"   => json_encode($cliente->getAttributes()),
             "id_usuario_creacion" => $cliente->id_usuario_creacion
         ]);
     }

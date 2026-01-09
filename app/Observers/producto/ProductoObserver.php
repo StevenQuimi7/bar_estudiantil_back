@@ -24,10 +24,15 @@ class ProductoObserver
     public function updated(Producto $producto): void
     {
         //
+        if ($producto->wasChanged('activo') && $producto->activo == 0) {
+            $accion = 'ELIMINAR';
+        } else {
+            $accion = 'ACTUALIZAR';
+        }
         $producto->auditoria()->create([
-            "accion" => "ACTUALIZAR",
-            "data_anterior"=>json_encode($producto->getPrevious()),
-            "data_actual"=>json_encode($producto),
+            "accion" => $accion,
+            "data_anterior" => json_encode($producto->getOriginal()),
+            "data_actual"   => json_encode($producto->getAttributes()),
             "id_usuario_creacion" => $producto->id_usuario_creacion
         ]);
     }

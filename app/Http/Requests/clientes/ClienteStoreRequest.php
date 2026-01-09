@@ -33,6 +33,7 @@ class ClienteStoreRequest extends FormRequest
             'numero_identificacion' => [
                 'required',
                 'max:10',
+                'min:10',
                 Rule::unique('clientes', 'numero_identificacion')->where(function ($query) {
                     return $query->where('activo', 1);
                 }),

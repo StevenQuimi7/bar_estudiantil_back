@@ -36,9 +36,8 @@ class CategoriaService
     public function comboCategorias(){
         $response = new Response();
         try{
-            $categorias = Categoria::select("id","nombre")->activo()
+            $categorias = Categoria::select("id as value","nombre as label")->activo()
             ->get();
-
             $response->setData($categorias);
             $response->setCode(200);
         }catch(Exception $e){
@@ -69,7 +68,8 @@ class CategoriaService
     public function update($id,$request){
         $response = new Response();
         try{
-            $categoria = Categoria::where("id",$id)->update([
+            $categoria = Categoria::findOrFail($id);
+            $categoria->update([
                 "nombre"              => $request->nombre,
                 "id_usuario_creacion" => getUsuarioAutenticado()->id
             ]);

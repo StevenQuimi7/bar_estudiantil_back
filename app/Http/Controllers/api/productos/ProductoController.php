@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api\productos;
 
 use App\Exports\admin\producto\PlantillaProductoExport;
+use App\Exports\DynamicExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\productos\ProductoStoreRequest;
 use App\Http\Requests\productos\ProductoUpdateRequest;
@@ -16,12 +17,6 @@ class ProductoController extends Controller
 {
      protected $_productoService;
     public function __construct(){
-        // $this->middleware('can:productos.index')->only('index');
-        // $this->middleware('can:productos.store')->only('store');
-        // $this->middleware('can:productos.update')->only('update');
-        // $this->middleware('can:productos.destroy')->only('destroy');
-        // $this->middleware('can:productos.descargarPlantilla')->only('descargarPlantilla');
-        // $this->middleware('can:productos.cargaMasiva')->only('cargaMasiva');
         $this->_productoService = new ProductoService();
     }
 
@@ -40,7 +35,6 @@ class ProductoController extends Controller
     {
         try{
             DB::beginTransaction();
-            $validator = $request->validated();
             $producto = $this->_productoService->store($request);
             if(!$producto->getOk()) throw new Exception($producto->getMsjError(), $producto->getCode());
             DB::commit();
@@ -55,7 +49,6 @@ class ProductoController extends Controller
     {
         try{
             DB::beginTransaction();
-            $validator = $request->validated();
             $producto = $this->_productoService->update($id, $request);
             if(!$producto->getOk()) throw new Exception($producto->getMsjError(), $producto->getCode());
             DB::commit();
@@ -87,14 +80,15 @@ class ProductoController extends Controller
         }
     }
     public function cargaMasiva(Request $request){
-        $request->validate($request, [
+        $request->validate([
             'file' => 'required|mimes:xls,xlsx|max:2048'
         ], [
-            'archivoExcel.required' => 'Debe seleccionar un archivo de Excel.',
-            'archivoExcel.mimes'    => 'El archivo debe ser un Excel con extensión .xls o .xlsx.',
-            'archivoExcel.max'      => 'El archivo no puede superar los 2 MB.',
+            'file.required' => 'Debe seleccionar un archivo de Excel.',
+            'file.mimes'    => 'El archivo debe ser un Excel con extensión .xls o .xlsx.',
+            'file.max'      => 'El archivo no puede superar los 2 MB.',
         ]);
         try {
+            
             DB::beginTransaction();
             $file = $request->file('file');
             $data = Excel::toArray([], $file)[0];
@@ -103,6 +97,15 @@ class ProductoController extends Controller
             if(!$productosStore->getOk()) throw new Exception($productosStore->getMsjError(), $productosStore->getCode());
             DB::commit();
             return response()->json(['ok' => true, 'data' => $productosStore->getData()],200);
+        } catch (Exception $e) {
+            return response()->json(['ok' => false, 'msj' => $e->getMessage(), 500]);
+        }
+    }
+    public function exportar(Request $request){
+        try {
+            $data = $this->_productoService->index($request);
+            if(!$data->getOk()) throw new Exception($data->getMsjError(), $data->getCode());
+            return Excel::download(new DynamicExport($data->getData(),"Productos",null), 'productos-' . time() . '.xlsx');
         } catch (Exception $e) {
             return response()->json(['ok' => false, 'msj' => $e->getMessage(), 500]);
         }

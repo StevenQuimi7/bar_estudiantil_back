@@ -6,6 +6,7 @@ use App\Utils\Response;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Response AS ResponseHttp;
+use Illuminate\Support\Facades\DB;
 
 class CursoService
 {
@@ -48,6 +49,41 @@ class CursoService
         }
         return $response;
     }
+
+    public function comboCursos($request){
+        $response = new Response();
+        try{
+            $cursos = Curso::select(
+                'cursos.id as value',
+                DB::raw("
+                    CONCAT(
+                        niveles.nombre, '-', 
+                        grados.grado, '-', 
+                        cursos.seccion,
+                        CASE 
+                            WHEN especialidades.nombre IS NOT NULL THEN CONCAT('-', especialidades.nombre) 
+                            ELSE '' 
+                        END
+                ) as label")
+
+
+            )
+            ->join('niveles', 'niveles.id', 'cursos.id_nivel')
+            ->leftJoin('especialidades', 'especialidades.id', 'cursos.id_especialidad')
+            ->join('grados', 'grados.id', 'cursos.id_grado')
+            ->where('cursos.activo', 1)
+            ->get();
+
+            $response->setData($cursos);
+            $response->setCode(200);
+        }catch(Exception $e){
+            Log::error("ERROR " . __FILE__ . ":" . __FUNCTION__ . " -> " . $e);
+            $response->setOk(false);
+            $response->setCode(ResponseHttp::HTTP_INTERNAL_SERVER_ERROR);
+            $response->setMsjError($e->getMessage());
+        }
+        return $response;
+    }
     public function store($request){
         $response = new Response();
         try{
@@ -71,7 +107,8 @@ class CursoService
     public function update($id,$request){
         $response = new Response();
         try{
-            $curso = Curso::where("id",$id)->update([
+            $curso = Curso::findOrFail($id);
+            $curso->update([
                 "id_nivel"            => $request->id_nivel,
                 "id_grado"            => $request->id_grado,
                 "seccion"             => $request->seccion,

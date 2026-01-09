@@ -40,21 +40,15 @@ class PlantillaEstudianteExport implements FromCollection, WithHeadings, WithSty
             ];
             return collect($data);
         } catch (Exception $e) {
-            // Log::alert("El error está en PlantillaEstudianteExport en la línea: " . $e->getLine());
-            // Log::alert("El error es: " . $e->getMessage());
+            Log::error("El error está en PlantillaEstudianteExport en la línea: " . $e->getLine());
+            Log::error("El error es: " . $e->getMessage());
         }
     }
 
     public function headings(): array
     {
         return [
-            'Número Identificación',
-            'Apellidos',
-            'Nombres',
-            'Nivel',
-            'Grado',
-            'Especialidad',
-            'Sección'
+            'numero_identificacion', 'apellidos', 'nombres', 'nivel', 'grado', 'especialidad', 'seccion'
         ];
     }
 

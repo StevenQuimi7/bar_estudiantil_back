@@ -26,10 +26,16 @@ class GradoObserver
     public function updated(Grado $grado): void
     {
         //
+        if ($grado->wasChanged('activo') && $grado->activo == 0) {
+            $accion = 'ELIMINAR';
+        } else {
+            $accion = 'ACTUALIZAR';
+        }
+
         $grado->auditoria()->create([
-            "accion" => "ACTUALIZAR",
-            "data_anterior"=>json_encode($grado->getPrevious()),
-            "data_actual"=>json_encode($grado),
+            "accion" => $accion,
+            "data_anterior" => json_encode($grado->getOriginal()),
+            "data_actual"   => json_encode($grado->getAttributes()),
             "id_usuario_creacion" => $grado->id_usuario_creacion
         ]);
     }

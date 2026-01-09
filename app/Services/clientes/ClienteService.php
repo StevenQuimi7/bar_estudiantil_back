@@ -5,11 +5,13 @@ use App\Models\cliente\Cliente;
 use App\Models\cliente\TipoCliente;
 use App\Models\curso\Curso;
 use App\Models\curso\CursoEstudiante;
+use App\Models\estudiante\Estudiante;
 use App\Utils\Response;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Response AS ResponseHttp;
-use Illuminate\Support\Facades\DB;
+
 
 class ClienteService
 {
@@ -20,16 +22,17 @@ class ClienteService
         try{
             $per_page = $request->input('per_page', 10);
             $page = $request->input('page', 1);
-            $clientes = Cliente::when(!empty($this->numero_identificacion),function($subquery) use($request){
+
+            $query = Cliente::query();
+
+            $query->when(!empty($this->numero_identificacion),function($subquery) use($request){
                 return $subquery->where("numero_identificacion",$request->numero_identificacion);
             })
-            ->when(!empty($request->nombres), function($query) use($request){
-                $query->where('nombres','ilike','%'.$request->nombres.'%');
+            ->when(!empty($request->full_name), function($query) use($request){
+                $query->where('nombres','like','%'.$request->full_name.'%')
+                ->orWhere('apellidos','like','%'.$request->full_name.'%');
             })
-            ->when(!empty($request->apellidos), function($query) use($request){
-                $query->where('apellidos','ilike','%'.$request->apellidos.'%');
-            })
-            ->whereRelation('tipo_cliente', 'nombre', $request->tipo_cliente)//CLIENTE O ESTUDIANTE
+            ->whereRelation('tipo_cliente', 'nombre','!=', "ESTUDIANTE")//CLIENTE O ESTUDIANTE
 
             ->with(["user"=>function($query){
                 return $query->select("id","username");
@@ -37,7 +40,7 @@ class ClienteService
             ->with(["tipo_cliente"=>function($query){
                 return $query->select("id","nombre");
             }])
-            ->with(["estudiante_curso"=>function($query){
+            /*->with(["estudiante_curso"=>function($query){
                 return $query->select("id","id_curso", "id_cliente")
                 ->with(['curso' => function ($query) {
                     $query->select(
@@ -56,11 +59,34 @@ class ClienteService
                     ->where("cursos.activo",1);
                 }]);
             }])
+            */
             ->orderBy('apellidos','asc')
-            ->where('activo',$request->activo)
-            ->paginate($per_page, ['*'], 'page', $page);
+            ->where('activo',1);
 
-            $response->setData($clientes);
+            if ($request->has('download') && ($request->download == true || $request->download == 'true')) {
+                $resultado = $query->get()->map(function ($item) {
+                    return $this->transformClientes($item);
+                });
+            } else {
+                $resultado = $query->paginate($per_page, ['*'], 'page', $page);
+            }
+
+            $response->setData($resultado);
+            $response->setCode(200);
+        }catch(Exception $e){
+            Log::error("ERROR " . __FILE__ . ":" . __FUNCTION__ . " -> " . $e);
+            $response->setOk(false);
+            $response->setCode(ResponseHttp::HTTP_INTERNAL_SERVER_ERROR);
+            $response->setMsjError($e->getMessage());
+        }
+        return $response;
+    }
+
+    public function comboTipoCliente(){
+        $response = new Response();
+        try{
+            $tipos_clientes = TipoCliente::select('id as value','nombre as label')->where('activo',true)->get();
+            $response->setData($tipos_clientes);
             $response->setCode(200);
         }catch(Exception $e){
             Log::error("ERROR " . __FILE__ . ":" . __FUNCTION__ . " -> " . $e);
@@ -78,14 +104,25 @@ class ClienteService
                 "nombres"               => $request->nombres,
                 "apellidos"             => $request->apellidos,
                 "numero_identificacion" => $request->numero_identificacion,
-                "id_usuario_creacion" => getUsuarioAutenticado()->id
+                "id_usuario_creacion"   => getUsuarioAutenticado()->id
             ]);
-            if($request->filled("id_curso")){
-                $cliente->estudiante_curso()->create([
-                    "id_curso"=> $request->id_curso,
+            //verifico si el cliente es de tipo estudiante y guardo su info
+            $tipo_cliente = TipoCliente::find($request->id_tipo_cliente);
+            
+            if($tipo_cliente->nombre == "ESTUDIANTE"){
+                $cliente->estudiante()->create([
+                    "id_curso"             => $request->id_curso,
                     "id_usuario_creacion"  => getUsuarioAutenticado()->id
                 ]);
+                //guardo los cursos del estudiante
+                /*if($request->filled("id_curso")){
+                    $cliente->estudiante_curso()->create([
+                        "id_curso"=> $request->id_curso,
+                        "id_usuario_creacion"  => getUsuarioAutenticado()->id
+                    ]);
+                }*/
             }
+            
             $response->setData($cliente);
             $response->setCode(201);
         }catch(Exception $e){
@@ -99,21 +136,30 @@ class ClienteService
     public function update($id,$request){
         $response = new Response();
         try{
-            $estudiante_curso = CursoEstudiante::where('id_cliente',$id)->orderBy('id','desc')->first();
-            $cliente = Cliente::where("id",$id)->update([
+            //$estudiante_curso = CursoEstudiante::where('id_cliente',$id)->orderBy('id','desc')->first();
+            
+            $cliente = Cliente::findOrFail($id);
+            $cliente->update([
                 "id_tipo_cliente"       => $request->id_tipo_cliente,
                 "nombres"               => $request->nombres,
                 "apellidos"             => $request->apellidos,
                 "numero_identificacion" => $request->numero_identificacion,
                 "id_usuario_creacion" => getUsuarioAutenticado()->id
             ]);
-            if ($estudiante_curso->id_curso !== $request->id_curso) {
 
-                $estudiante_curso->id_curso = $request->id_curso;
-                $estudiante_curso->id_usuario_creacion = getUsuarioAutenticado()->id;
-                $estudiante_curso->updated_at = now();
-                $estudiante_curso->save();
+            //verifico si el cliente es de tipo estudiante y actualizo su info
+            $tipo_cliente = TipoCliente::find($request->id_tipo_cliente);
+            if($tipo_cliente->nombre == "ESTUDIANTE"){
+                $estudiante = Estudiante::where('id_cliente',$id)->orderBy('id','desc')->first();
+                if ($request->filled("id_curso") && $estudiante->id_curso !== $request->id_curso) {
+
+                    $estudiante->id_curso = $request->id_curso;
+                    $estudiante->id_usuario_creacion = getUsuarioAutenticado()->id;
+                    $estudiante->updated_at = now();
+                    $estudiante->save();
+                }
             }
+            
             $response->setData($cliente);
             $response->setCode(200);
         }catch(Exception $e){
@@ -180,8 +226,7 @@ class ClienteService
             //obtener el id del cliente estudiante
             $id_tipo_cliente  = TipoCliente::where('nombre', 'OTROS')->firstOrFail()->id;
 
-            $id_tipo_cliente_estudiante  = TipoCliente::where('nombre', 'ESTUDIANTE')->firstOrFail()->id;
-            $validacionEstudiante = $this->validaIdentificacionCliente($cedulas,$id_tipo_cliente_estudiante);
+            $validacionEstudiante = $this->validaIdentificacionCliente($cedulas);
             if($validacionEstudiante->ok) throw new Exception($validacionEstudiante->msj);
 
             
@@ -204,7 +249,7 @@ class ClienteService
             if (!empty($clientesToUpsert)) {
                 Cliente::upsert($clientesToUpsert, ['numero_identificacion'], ['nombres', 'apellidos', 'id_usuario_creacion', 'updated_at']);
             }
-            $response->setData("Productos registrados exitosamente");
+            $response->setData("Clientes registrados exitosamente");
             $response->setCode(200);
         }catch(Exception $e){
             Log::error("ERROR " . __FILE__ . ":" . __FUNCTION__ . " -> " . $e);
@@ -255,33 +300,33 @@ class ClienteService
             }
             if (!empty($clientesToUpsert)) {
                 Cliente::upsert($clientesToUpsert, ['numero_identificacion'], ['nombres', 'apellidos', 'id_usuario_creacion', 'updated_at']);
-            }
-
-            // Volvemos a obtener todos los clientes. Esto incluye a los nuevos con sus IDs
-            $clientesActualizados = $this->obtenerClientesExistentes($cedulas);
-            foreach ($filasExcel as $fila) {
-                $numero_identificacion = $fila['numero_identificacion'];
-                $curso_row = "{$fila['nivel']}-{$fila['grado']}-{$fila['seccion']}";
-
-                if (strtoupper(trim($fila['nivel'])) === 'BACHILLERATO') {
-                    $curso_row .= '-' . strtoupper(trim($fila['especialidad'] ?? ''));
+                // obtener clientes previamente registrados y regirstrar estudiantes
+                $clientesActualizados = $this->obtenerClientesExistentes($cedulas);
+                foreach ($filasExcel as $fila) {
+                    $numero_identificacion = $fila['numero_identificacion'];
+                    $curso_row = "{$fila['nivel']}-{$fila['grado']}-{$fila['seccion']}";
+    
+                    if (strtoupper(trim($fila['nivel'])) === 'BACHILLERATO') {
+                        $curso_row .= '-' . strtoupper(trim($fila['especialidad'] ?? ''));
+                    }
+    
+                    $curso = $cursos->get($curso_row);
+                    $cliente = $clientesActualizados->get($numero_identificacion);
+    
+                    if (!$curso) throw new Exception("Error en fila {$fila['fila_num']}: no existe el curso '$curso_row'.");
+                    
+                    $cursoEstudiantesToUpsert[] = [
+                        'id_cliente'          => $cliente->id,
+                        'id_curso'            => $curso['id'],
+                        'id_usuario_creacion' => getUsuarioAutenticado()->id,
+                    ];
                 }
-
-                $curso = $cursos->get($curso_row);
-                $cliente = $clientesActualizados->get($numero_identificacion);
-
-                if (!$curso) throw new Exception("Error en fila {$fila['fila_num']}: no existe el curso '$curso_row'.");
-                
-                $cursoEstudiantesToUpsert[] = [
-                    'id_cliente'          => $cliente->id,
-                    'id_curso'            => $curso['id'],
-                    'id_usuario_creacion' => getUsuarioAutenticado()->id,
-                ];
+    
+                if (!empty($cursoEstudiantesToUpsert)) {
+                    Estudiante::upsert($cursoEstudiantesToUpsert, ['id_cliente'], ['id_curso','updated_at']);
+                }
             }
 
-            if (!empty($cursoEstudiantesToUpsert)) {
-                CursoEstudiante::upsert($cursoEstudiantesToUpsert, ['id_cliente'], ['id_curso','updated_at']);
-            }
             $response->setData("Productos registrados exitosamente");
             $response->setCode(200);
         }catch(Exception $e){
@@ -299,12 +344,31 @@ class ClienteService
         $columnas_cliente    = ['numero_identificacion', 'apellidos', 'nombres'];
         $columnas_estudiante = ['numero_identificacion', 'apellidos', 'nombres', 'nivel', 'grado', 'especialidad', 'seccion'];
         $columnas = $tipo_cliente == "ESTUDIANTE" ? $columnas_estudiante : $columnas_cliente;
+        
+        $cabecerasExcel = collect($data[0])
+            ->slice(0, count($columnas))
+            ->map(fn($item) => strtolower(trim($item)))
+            ->toArray();
+
+        if ($columnas !== $cabecerasExcel) {
+            throw new Exception(
+                "El formato del archivo no es válido. " . 
+                "Se esperaba el orden: " . implode(', ', $columnas) . ". " .
+                "Se recibió: " . implode(', ', $cabecerasExcel)
+            );
+        }
+        
         $filas = collect($data)
             ->slice(1) // saltar encabezado
             ->map(function ($fila, $key) use ($columnas, $tipo_cliente) {
 
                 foreach ($columnas as $index => $field) {
-                    if (empty($fila[$index])) {
+                    //validacion especialidad cuando nivel sea bachillerato
+                    if($field == 'especialidad' && strtolower(trim($fila[$index - 2])) == 'bachillerato' && empty($fila[$index])){
+                        throw new Exception("Error: campo {$field} vacío en fila " . ($key + 1));
+                    }
+                    //validacion de campos nulos != especialidad
+                    if ($field != 'especialidad' && empty($fila[$index])) {
                         throw new Exception("Error: campo {$field} vacío en fila " . ($key + 1));
                     }
                 }
@@ -338,12 +402,11 @@ class ClienteService
         return $filas;
     }
 
-    public function validaIdentificacionCliente($cedulas,$id_tipo_cliente){
+    public function validaIdentificacionCliente($cedulas){
         $msj ='';
         $ok=false;
         
-        $clientes_estudiantes = Cliente::where('id_tipo_cliente',$id_tipo_cliente)
-                ->whereIn('numero_identificacion',$cedulas)
+        $clientes_estudiantes = Cliente::whereIn('numero_identificacion',$cedulas)
                 ->pluck('numero_identificacion');
         if(count($clientes_estudiantes)>0){
             $msj= implode(", ",$clientes_estudiantes->toArray());
@@ -399,6 +462,42 @@ class ClienteService
                     ->whereRelation('tipo_cliente', 'nombre', '=', 'ESTUDIANTE')
                     ->get()
                     ->keyBy('numero_identificacion');
+    }
+
+    public function comboClientes($request){
+        $response = new Response();
+        try{
+            $per_page = $request->input('per_page', 10);
+            $page     = $request->input('page', 1);
+
+            $clientes =  Cliente::select('id as value',DB::raw("CONCAT(nombres,' ',apellidos) as label"))
+                        ->when(!empty($request->full_name), function($query) use($request){
+                            $query->where('nombres','like','%'.$request->full_name.'%')
+                            ->orWhere('apellidos','like','%'.$request->full_name.'%');
+                        })    
+                        ->activo()    
+                        ->paginate($per_page, ['*'], 'page', $page);
+
+            $response->setData($clientes);
+            $response->setCode(200);
+
+        }catch(Exception $e){
+            Log::error("ERROR " . __FILE__ . ":" . __FUNCTION__ . " -> " . $e);
+            $response->setOk(false);
+            $response->setCode(ResponseHttp::HTTP_INTERNAL_SERVER_ERROR);
+            $response->setMsjError($e->getMessage());
+        }
+        return $response;
+    }
+
+    public function transformClientes($cliente){
+        return [
+            "tipo_cliente"          => $cliente->tipo_cliente->nombre,
+            "nombres"               => $cliente->nombres,
+            "apellidos"             => $cliente->apellidos,
+            "numero_identificacion" => $cliente->numero_identificacion,
+            "fecha_creacion"        => ($cliente->created_at)->format('Y-m-d'),
+        ];
     }
 
 

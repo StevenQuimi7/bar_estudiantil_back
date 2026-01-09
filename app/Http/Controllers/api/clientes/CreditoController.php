@@ -14,16 +14,13 @@ class CreditoController extends Controller
 
     protected $_creditoService;
     public function __construct(){
-        // $this->middleware('can:creditos.find')->only('find');
-        // $this->middleware('can:creditos.store')->only('store');
-        // $this->middleware('can:creditos.movimientos')->only('movimientos');
         $this->_creditoService = new CreditoService();
     }
 
-    public function find(Request $request)
+    public function creditoCliente(Request $request)
     {
         try{
-            $creditos = $this->_creditoService->find($request);
+            $creditos = $this->_creditoService->creditoCliente($request);
             if(!$creditos->getOk()) throw new Exception($creditos->getMsjError(), $creditos->getCode());
             return response()->json(['ok' => true, 'data' => $creditos->getData()],200);
         }catch(Exception $e){
@@ -43,7 +40,6 @@ class CreditoController extends Controller
 
     public function store(CreditoStoreRequest $request)
     {
-        $validator = $request->validated();
         try{
             DB::beginTransaction();
             $saldo = 0;

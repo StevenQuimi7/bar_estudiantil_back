@@ -48,6 +48,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+    protected $guard_name = 'api';
 
     /**
      * Get the attributes that should be cast.
@@ -101,8 +102,11 @@ class User extends Authenticatable
     public function especialidades(){
         return $this->hasMany(Especialidad::class,'id_usuario_creacion','id');
     }
-    public function auditorias(){
+    /*public function auditorias(){
         return $this->hasMany(Auditoria::class,'id_usuario_creacion','id');
+    }*/
+    public function auditoria(){
+        return $this->morphMany(Auditoria::class, 'auditable');
     }
     public function imagenes(){
         return $this->hasMany(Image::class,'id_usuario_creacion','id');

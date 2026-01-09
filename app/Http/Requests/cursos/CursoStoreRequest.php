@@ -25,7 +25,7 @@ class CursoStoreRequest extends FormRequest
             'id_nivel' => [
                 'required',
                 'integer',
-                Rule::exists('cursos', 'id'),
+                Rule::exists('niveles', 'id'),
             ],
             'id_grado' => [
                 'required',

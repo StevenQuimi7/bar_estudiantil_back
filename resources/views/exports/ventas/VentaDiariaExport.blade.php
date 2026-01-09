@@ -3,6 +3,7 @@
     <tr>
         <th style="font-weight: bold; background-color:#0a1725; color:white;">#</th>
         <th style="font-weight: bold; background-color:#0a1725; color:white;">TIPO CLIENTE</th>
+        <th style="font-weight: bold; background-color:#0a1725; color:white;"># IDENTIFICACIÓN</th>
         <th style="font-weight: bold; background-color:#0a1725; color:white;">CLIENTE</th>
         <th style="font-weight: bold; background-color:#0a1725; color:white;">TOTAL VENTA</th>
         <th style="font-weight: bold; background-color:#0a1725; color:white;">DESCUENTO CREDITO</th>
@@ -16,6 +17,7 @@
         <tr>
             <td>{{ $key+1 }}</td>
             <td>{{ $resultado->cliente->tipo_cliente->nombre }}</td>
+            <td>{{ $resultado->cliente->numero_identificacion }}</td>
             <td>{{ $resultado->cliente->nombre_completo }}</td>
             <td>{{ number_format(doubleval($resultado->total_venta),2,".","") }}</td>
             <td>{{ number_format(doubleval($resultado->descuento_credito),2,".","") }}</td>

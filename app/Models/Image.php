@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ModeloBase;
 
-class Image extends Model
+class Image extends ModeloBase
 {
     //
     protected $table = 'images';

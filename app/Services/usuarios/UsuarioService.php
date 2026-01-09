@@ -12,7 +12,7 @@ class UsuarioService
     public function __construct(){}
 
     public function index($request){
-        log::info($request);
+        
         $response = new Response();
         try{
             $per_page = $request->input('per_page', 10);
@@ -26,7 +26,6 @@ class UsuarioService
             ->with(['roles:id,name'])
             ->orderBy('created_at','desc')
             ->paginate($per_page, ['*'], 'page', $page);
-
             $response->setData($usuarios);
             $response->setCode(200);
         }catch(Exception $e){
@@ -60,16 +59,21 @@ class UsuarioService
     public function update($id,$request){
         $response = new Response();
         try{
-             $usuario = User::findOrFail($id);
+            $usuario = User::findOrFail($id);
 
             $usuario->nombres   = $request->nombres;
             $usuario->apellidos = $request->apellidos;
             $usuario->email     = $request->email;
+
+            if($request->filled('password')){
+                $usuario->password = bcrypt($request->password);
+            }
             $usuario->save();
 
-            if ($request->rol_name_base != $request->rol_name) {
+            if ($request->filled('rol_name') && $request->rol_name_base != $request->rol_name) {
                 $usuario->syncRoles($request->rol_name);
             }
+            
             $response->setData($usuario);
             $response->setCode(200);
         }catch(Exception $e){
@@ -109,6 +113,22 @@ class UsuarioService
         }
         return $response;
     }
+
+    public function perfilUsuario($request){
+        $response = new Response();
+        try{
+            $usuario = User::where('id', $request->id_usuario)->with(['roles:id,name'])->first();
+            $response->setData($usuario);
+            $response->setCode(200);
+        }catch(Exception $e){
+            Log::error("ERROR " . __FILE__ . ":" . __FUNCTION__ . " -> " . $e);
+            $response->setOk(false);
+            $response->setCode(ResponseHttp::HTTP_INTERNAL_SERVER_ERROR);
+            $response->setMsjError($e->getMessage());
+        }
+        return $response;
+    }
+    
 
 }
 

@@ -2,6 +2,7 @@
     <thead>
     <tr>
         <th style="font-weight: bold; background-color:#0a1725; color:white;">#</th>
+        <th style="font-weight: bold; background-color:#0a1725; color:white;"># IDENTIFICACIÓN</th>
         <th style="font-weight: bold; background-color:#0a1725; color:white;">CLIENTE</th>
         <th style="font-weight: bold; background-color:#0a1725; color:white;">PRODUCTO</th>
         <th style="font-weight: bold; background-color:#0a1725; color:white;">PRECIO</th>
@@ -15,6 +16,7 @@
     @forelse($results as $key=>$resultado)
         <tr>
             <td>{{ $key+1 }}</td>
+            <td>{{ $resultado->numero_identificacion }}</td>
             <td>{{ $resultado->cliente }}</td>
             <td>{{ $resultado->producto }}</td>
             <td>{{ number_format(doubleval($resultado->precio),2,".","") }}</td>

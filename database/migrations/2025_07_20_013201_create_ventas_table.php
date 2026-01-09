@@ -17,7 +17,8 @@ return new class extends Migration
             $table->decimal("total_pagar",12,2);
             $table->decimal("descuento_credito",12,2);
             $table->decimal("total_venta",12,2);
-            $table->enum("estado_gestion",['PENDIENTE','PROCESO','PAGADO'])->default('PENDIENTE');
+            $table->enum("estado_gestion",['PENDIENTE','PROCESO','PAGADO','ANULADO
+            '])->default('PENDIENTE');
             $table->boolean("activo")->default(true);
             $table->foreign("id_cliente")->references("id")->on("clientes");
             $table->unsignedBigInteger('id_usuario_creacion');

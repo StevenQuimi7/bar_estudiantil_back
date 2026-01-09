@@ -15,10 +15,6 @@ class GradoController extends Controller
 
     protected $_gradoService;
     public function __construct(){
-        // $this->middleware('can:grados.index')->only('index');
-        // $this->middleware('can:grados.store')->only('store');
-        // $this->middleware('can:grados.update')->only('update');
-        // $this->middleware('can:grados.destroy')->only('destroy');
         $this->_gradoService = new GradoService();
     }
 
@@ -47,7 +43,6 @@ class GradoController extends Controller
     {
         try{
             DB::beginTransaction();
-            $validator = $request->validated();
             $grado = $this->_gradoService->store($request);
             if(!$grado->getOk()) throw new Exception($grado->getMsjError(), $grado->getCode());
             DB::commit();
@@ -62,7 +57,6 @@ class GradoController extends Controller
     {
         try{
             DB::beginTransaction();
-            $validator = $request->validated();
             $grado = $this->_gradoService->update($id, $request);
             if(!$grado->getOk()) throw new Exception($grado->getMsjError(), $grado->getCode());
             DB::commit();

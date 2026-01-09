@@ -69,7 +69,8 @@ class GradoService
     public function update($id,$request){
         $response = new Response();
         try{
-            $grado = Grado::where("id",$id)->update([
+            $grado = Grado::findOrFail($id);
+            $grado->update([
                 "grado"              => $request->grado,
                 "id_usuario_creacion" => getUsuarioAutenticado()->id
             ]);

@@ -15,10 +15,6 @@ class NivelController extends Controller
 
     protected $_nivelService;
     public function __construct(){
-        // $this->middleware('can:niveles.index')->only('index');
-        // $this->middleware('can:niveles.store')->only('store');
-        // $this->middleware('can:niveles.update')->only('update');
-        // $this->middleware('can:niveles.destroy')->only('destroy');
         $this->_nivelService = new NivelService();
     }
 
@@ -46,7 +42,6 @@ class NivelController extends Controller
 
     public function store(NivelStoreRequest $request)
     {
-        $validator = $request->validated();
         try{
             DB::beginTransaction();
             $nivel = $this->_nivelService->store($request);
@@ -61,7 +56,6 @@ class NivelController extends Controller
 
     public function update(NivelUpdateRequest $request, string $id)
     {
-        $validator = $request->validated();
         try{
             DB::beginTransaction();
             $nivel = $this->_nivelService->update($id, $request);

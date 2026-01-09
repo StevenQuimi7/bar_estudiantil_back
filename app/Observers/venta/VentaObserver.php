@@ -25,10 +25,16 @@ class VentaObserver
     public function updated(Venta $venta): void
     {
         //
+        if ($venta->wasChanged('activo') && $venta->activo == 0) {
+            $accion = 'ELIMINAR';
+        } else {
+            $accion = 'ACTUALIZAR';
+        }
+
         $venta->auditoria()->create([
-            "accion" => "ACTUALIZAR",
-            "data_anterior"=>json_encode($venta->getPrevious()),
-            "data_actual"=>json_encode($venta),
+            "accion" => $accion,
+            "data_anterior" => json_encode($venta->getOriginal()),
+            "data_actual"   => json_encode($venta->getAttributes()),
             "id_usuario_creacion" => $venta->id_usuario_creacion
         ]);
     }

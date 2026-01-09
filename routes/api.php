@@ -13,6 +13,11 @@ require __DIR__.'/apis/usuarios/UsuarioApi.php';
 require __DIR__.'/apis/productos/ProductoApi.php';
 require __DIR__.'/apis/clientes/ClienteApi.php';
 require __DIR__.'/apis/clientes/CreditoApi.php';
+require __DIR__.'/apis/estudiantes/EstudianteApi.php';
+require __DIR__.'/apis/ventas/VentaApi.php';
+require __DIR__.'/apis/auditorias/AuditoriaApi.php';
+require __DIR__.'/apis/documentos/DocumentoApi.php';
+require __DIR__.'/apis/dashboards/DashboardApi.php';
 
 Route::post('/login',[AuthController::class, 'login'] );
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);

@@ -9,18 +9,12 @@ use App\Services\categorias\CategoriaService;
 use Illuminate\Http\Request;
 use Exception;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class CategoriaController extends Controller
 {
 
     protected $_categoriaService;
     public function __construct(){
-        // $this->middleware('can:categorias.index')->only('index');
-        // $this->middleware('can:categorias.comboCategorias')->only('comboCategorias');
-        // $this->middleware('can:categorias.store')->only('store');
-        // $this->middleware('can:categorias.update')->only('update');
-        // $this->middleware('can:categorias.destroy')->only('destroy');
         $this->_categoriaService = new CategoriaService();
     }
 
@@ -47,7 +41,6 @@ class CategoriaController extends Controller
 
     public function store(CategoriaStoreRequest $request)
     {
-        $validator = $request->validated();
         try{
             DB::beginTransaction();
             $categoria = $this->_categoriaService->store($request);
@@ -62,7 +55,6 @@ class CategoriaController extends Controller
 
     public function update(CategoriaUpdateRequest $request, string $id)
     {
-        $validator = $request->validated();
         try{
             DB::beginTransaction();
             $categoria = $this->_categoriaService->update($id, $request);

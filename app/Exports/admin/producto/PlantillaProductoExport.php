@@ -28,23 +28,23 @@ class PlantillaProductoExport implements FromCollection, WithHeadings, WithStyle
                     'DESAYUNOS',
                     'DES001',
                     'ENECEBOLLADO',
-                    '2,50'
+                    2.50
                 ]
             ];
             return collect($data);
         } catch (Exception $e) {
-            // Log::alert("El error está en PlantillaProductoExport en la línea: " . $e->getLine());
-            // Log::alert("El error es: " . $e->getMessage());
+            Log::error("El error está en PlantillaProductoExport en la línea: " . $e->getLine());
+            Log::error("El error es: " . $e->getMessage());
         }
     }
 
     public function headings(): array
     {
         return [
-            'Categoría',
-            'Código',
-            'Nombre',
-            'Precio'
+           'categoria', 
+           'codigo', 
+           'nombre', 
+           'precio'
         ];
     }
 
